@@ -1,5 +1,6 @@
 class TicketsController < ApplicationController
   before_filter :require_user
+  befote_filter :check_email_tickets, only => [:show, :index]
   before_filter :set_current_tab
   before_filter :lookup_ticket, :only => [:edit, :update, :destroy]
   before_filter :require_admin, :only => [:destroy]
@@ -149,12 +150,10 @@ class TicketsController < ApplicationController
       else
         pop.mails.each do |email|
           @mymail = TMail::Mail.parse(email.pop)
-          email.parts.each_with_index do |part, index|
-            part['content-location']
-            part.content_type
-          end
+          @attachments = receive(@mymail)
+          @ticket = @current_user.created_tickets.build(:conditions=>["title=? and details=? and created_by=?", @attachments.suject, @attachments.body, @attachments.from])
+          @ticket.save
         end
-      @attachments = receive(@mymail)  
       end
     end
   end
@@ -172,7 +171,6 @@ class TicketsController < ApplicationController
       @attachments = @attachments + "|" + filename
       puts "WRITING: #{filepath}"
     end
- 
     return @attachments
   end
  
