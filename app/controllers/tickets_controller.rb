@@ -141,4 +141,51 @@ class TicketsController < ApplicationController
     @alert = Alert.find_by_user_id_and_ticket_id(@current_user.id, params[:id])
   end
   
+  def check_email_tickets
+    @pop = Net::POP3.new 'koombea.com'
+    @pop.start('emailtickets@koombea.com', '1060004039dfa') do |pop|
+      if pop.mails.empty?
+        flash[:error] = "Don't exist tickets via email !"
+      else
+        pop.mails.each do |email|
+          @mymail = TMail::Mail.parse(email.pop)
+          email.parts.each_with_index do |part, index|
+            part['content-location']
+            part.content_type
+          end
+        end
+      @attachments = receive(@mymail)  
+      end
+    end
+  end
+  
+  def receive(email)
+    #email.attachments are TMail::Attachment
+    #but they ignore a text/mail parts.
+    @attachments = ''
+ 
+    email.parts.each_with_index do |part, index|
+      filename = part_filename(part)
+      filename ||= "#{index}.#{ext(part)}"
+      filename = "#{Time.now.strftime("%Y%m%d%H%M%S")}-" + filename
+      filepath = "#{RAILS_ROOT}/public/attachements/#{filename}"
+      @attachments = @attachments + "|" + filename
+      puts "WRITING: #{filepath}"
+    end
+ 
+    return @attachments
+  end
+ 
+  # part is a TMail::Mail
+  def part_filename(part)
+    # This is how TMail::Attachment gets a filename
+    file_name = (part['content-location'] 
+      part['content-location'].body) ||
+      part.sub_header("content-type", "name") ||
+      part.sub_header("content-disposition", "filename")
+  end
+
+
+  
+  
 end
