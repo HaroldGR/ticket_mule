@@ -151,7 +151,8 @@ class TicketsController < ApplicationController
         pop.mails.each do |email|
           @mymail = TMail::Mail.parse(email.pop)
           @attachments = receive(@mymail)
-          @ticket = @current_user.created_tickets.build(:conditions=>["title=? and details=? and created_by=?", @attachments.suject, @attachments.body, @attachments.from])
+          @ticket = Ticket.new
+          @ticket = Ticket.create(:title => @attachments.suject, :details => @attachments.body, created_by => @attachments.from)
           @ticket.save
         end
       end
