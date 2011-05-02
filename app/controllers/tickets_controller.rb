@@ -1,6 +1,6 @@
 class TicketsController < ApplicationController
   before_filter :require_user
-  befote_filter :check_email_tickets, only => [:show, :index]
+  before_filter :check_email_tickets, :only => [:show, :index]
   before_filter :set_current_tab
   before_filter :lookup_ticket, :only => [:edit, :update, :destroy]
   before_filter :require_admin, :only => [:destroy]
